@@ -158,10 +158,14 @@ cd C:/D_Dev/MyGitRepository
 git init
 
 3、日常作业
-git add *
-git commit -m "ver 1"
-git status
-git diff xxx
+git add *	送暂存区
+git commit -m "ver 1" 提交缓冲区
+git status	看状态
+git diff xxx	看xxx文件差异
+git log	看版本沿革-全息
+git log --pretty=oneline 看版本沿革-简易
+git reset --hard HEAD^ 回退到上一版本
+git reflog 用来记录你的每一次命令，以便确定要回到未来的哪个版本
 
 4、远程共享
 C:/Users/q
