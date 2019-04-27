@@ -1,0 +1,300 @@
+一、基本网络环境
+	科电无线DNS： 10.10.65.116
+	
+	双网：
+		IEDS-LD / ieds.com,2018 
+		192.168.2.145
+		255.255.255.0
+		192.168.2.1
+	DNS
+		118.118.118.1
+	
+	科电有线内网
+		10.10.128.220
+		255.255.255.0
+		10.10.128.254
+		iNode账号 liuganping / liuganping
+	
+	科电vpn liuganping / iamadr*()
+	https://123.178.22.217:4430/por/login_psw.csp?rnd=0.03949999066133847#ht
+	
+	内网 svn： liuganping / liuganping
+	外网 svn： liuganping / 33001Tivoli
+
+二、COAKD - 科电运营信息管理平台
+	IP / 10.10.65.210
+	os root / qcUrTri1
+	os weblogic / 333001Tivoli
+	console weblogic / weblogic11g
+	mysql 
+		os mysql / 333001Tivoli 
+		mysql root / 333001Tivoli
+		
+	启动mysql服务，root下：
+		cd /usr/local/mysql/bin
+		./mysqld_safe --user=mysql &
+		
+	mysql管理，mysql下：
+		cd /usr/local/mysql/bin
+		./mysqldump -uroot -p333001Tivoli --opt -R coakdu > /home/mysql/coakdu.sql	备份
+		./mysql -uroot -p	管理
+		mysql>CREATE DATABASE `coakdu` CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';	恢复
+		./mysql -uroot -p333001Tivoli --comment coakdu </home/mysql/coakdu.sql	恢复
+		./mysqladmin -uroot -p shutdown	关闭
+	
+	weblogic管理、受管服务启动/关闭，weblogic下：
+		cd /u01/weblogic/user_projects/domains/coa_domain/bin	
+		
+		nohup ./startWebLogic.sh  & 管理节点后台启动
+		nohup ./startWebLogic.sh >/u01/weblogic/logs/start_AdminConsole.log 2>&1 & 管理节点后台启动（带输出日志）
+		tail -f /u01/weblogic/logs/start_AdminConsole.log	查看日志
+		
+		nohup ./startManagedWebLogic.sh Server & 受管节点后台启动
+		nohup ./startManagedWebLogic.sh Server >/u01/weblogic/logs/start_ManagedServer.log 2>&1 &
+		tail -f /u01/weblogic/logs/start_ManagedServer.log	查看日志
+		
+		./stopManagedWebLogic.sh Server 停受管节点
+		./stopWebLogic.sh 停管理节点
+		
+	访问
+		应用控制台 / http://oa.ieds.com.cn/coa/loginAdmin.jsp  admin / cde32wsxzaq1
+		主应用 / http://oa.ieds.com.cn/coa/login.jsp
+		wls console / http://10.10.65.210:7001/console/login/LoginForm.jsp
+		
+三、NMXF - 小付钱包运营信息管理平台
+	IP / 10.10.69.13
+	root / ,ki89ol.
+	oracle / oracle
+	DB instance / xfdb
+		sys / oracle
+	
+	表空间
+	create tablespace tbs_master Datafile '/u01/app/oracle/oradata/xfdb/tbs_master.dbf' size 2G reuse extent management local uniform size 2m 
+	segment space management auto;
+	create tablespace tbs_app0 Datafile '/u01/app/oracle/oradata/xfdb/tbs_app0.dbf' size 2G reuse extent management local uniform size 2m 
+	segment space management auto;
+	create tablespace tbs_app1 Datafile '/u01/app/oracle/oradata/xfdb/tbs_app1.dbf' size 2G reuse extent management local uniform size 2m 
+	segment space management auto;
+	create tablespace tbs_app2 Datafile '/u01/app/oracle/oradata/xfdb/tbs_app2.dbf' size 2G reuse extent management local uniform size 2m 
+	segment space management auto;
+	
+	create tablespace tbs_master_idx Datafile '/u01/app/oracle/oradata/xfdb/tbs_master_idx.dbf' size 1G reuse extent management local uniform size 2m 
+	segment space management auto;
+	create tablespace tbs_app0_idx Datafile '/u01/app/oracle/oradata/xfdb/tbs_app0_idx.dbf' size 1G reuse extent management local uniform size 2m 
+	segment space management auto;
+	create tablespace tbs_app1_idx Datafile '/u01/app/oracle/oradata/xfdb/tbs_app1_idx.dbf' size 1G reuse extent management local uniform size 2m 
+	segment space management auto;
+	
+	年末增加表空间
+	select 'ALTER TABLE '||TABLE_NAME||' ADD PARTITION P2 values less than (to_date(''2018-12-31'',''yyyy-mm-dd'')) tablespace TBS_APP2;' 
+	from (select distinct TABLE_NAME from user_tab_partitions order by TABLE_NAME) t;
+	
+	模式用户
+		CREATE USER xf IDENTIFIED BY xf141205 DEFAULT TABLESPACE "TBS_MASTER" TEMPORARY TABLESPACE "TEMP";
+		GRANT "RESOURCE" TO xf ;
+		GRANT "CONNECT" TO xf ;
+		GRANT "DBA" TO xf ;
+		GRANT UNLIMITED TABLESPACE TO xf;
+	
+		CREATE USER seal IDENTIFIED BY seal141205 DEFAULT TABLESPACE "TBS_MASTER" TEMPORARY TABLESPACE "TEMP";
+		GRANT "RESOURCE" TO seal ;
+		GRANT "CONNECT" TO seal ;
+		GRANT "DBA" TO seal ;
+		GRANT UNLIMITED TABLESPACE TO seal;
+		
+	模式导入导出
+		drop Directory Dpdata;
+		Create Directory Dpdata As '/home/oracle/dp';	 
+		grant read,write on directory Dpdata to xf;
+		grant read,write on directory Dpdata to seal;
+	
+		impdp xf/xf141205 directory=Dpdata dumpfile=XF.DMP logfile=xf_imp.log
+		impdp seal/seal141205 directory=Dpdata dumpfile=SEAL.DMP logfile=seal_imp.log
+		expdp xf/xf141205@localhost/xfdb directory=Dpdata dumpfile=xf.dmp logfile=xf_exp.log
+	
+	数据库链
+		--sys下
+		drop public database link link_seal;
+		
+		grant create public database link to xf;
+		grant create SYNONYM to xf;
+		
+		--xf下
+		create public database link link_seal connect to seal identified by "seal141205" 
+		using '(description=(address=(protocol=tcp)(host=10.10.69.13)(port=1521))(connect_data=(sid=xfdb)))';
+		
+		CREATE SYNONYM zz_PrivateSignature FOR seal.v_PrivateSignature@LINK_SEAL;
+	
+	中间件部署
+		weblogic / welcome1
+		修改startWebLogic.sh支持后台方式启动
+			if [ "${WLS_USER}" != "" ] ; then
+				JAVA_OPTIONS="${JAVA_OPTIONS} -Dweblogic.management.username=${WLS_USER}"
+			fi
+			if [ "${WLS_PW}" != "" ] ; then
+				JAVA_OPTIONS="${JAVA_OPTIONS} -Dweblogic.management.password=${WLS_PW}"
+			fi
+			为
+			if [ "${WLS_USER}" != "" ] ; then
+				JAVA_OPTIONS="${JAVA_OPTIONS} -Dweblogic.management.username=weblogic"
+			fi
+			if [ "${WLS_PW}" != "" ] ; then
+				JAVA_OPTIONS="${JAVA_OPTIONS} -Dweblogic.management.password=welcome1"
+			fi
+		
+		启动点	/u01/app/oracle/product/fmw11g/user_projects/domains/xf_domain/bin
+		启动
+			$ cd /u01/app/oracle/product/fmw11g/user_projects/domains/xf_domain/bin
+			$ nohup sh startWebLogic.sh 1>/dev/null 2>1 &
+	
+		更新删除点	/u01/app/oracle/product/fmw11g/user_projects/domains/xf_domain/servers/AdminServer/tmp/_WL_user/xf
+		应用部署目录	/u01/app/xf
+	
+	应用设置
+		admin / KfzhiKong14
+		附件中转站	//u01//app//xfxxtmp//
+		附件均衡路径
+			//u01//app//xfxxfile//file1//
+			//u01//app//xfxxfile//file2//
+			//u01//app//xfxxfile//file3//
+		cmd应用部署目录	/u01/app/xfcmd/TmpToFormal.sh
+		0 0 * * * /u01/app/xfcmd/TmpToFormal.sh
+	
+	后台对象有效性检查
+		select 'ALTER '||object_type||' '||OWNER||'.'||OBJECT_NAME||' COMPILE;'
+		from all_objects
+		where object_type in ('FUNCTION','INDEX','INDEX PARTITION','JAVA CLASS','JAVA RESOURCE','JAVA SOURCE','LOB','LOB PARTITION','PACKAGE',
+			 'PROCEDURE','SEQUENCE','TABLE','TABLE PARTITION','TRIGGER','VIEW') and OWNER = 'XF' and status NOT IN ('VALID');
+	
+	访问 
+		主应用 / http://10.10.69.13:7001/xf
+
+四、庆源
+	会议投影 小鱼易联 60213920
+	公网 / http://oa.greenamc.com/coaqy/
+	邮箱地址 / mail.greenamc.com
+	邮箱账号 / webmaster@greenamc.com / 邮箱密码 webmaster0426  初始 gw1admin.com
+	
+	应用 10.10.65.22 （内网） 123.178.22.218 （外网）
+		root / Uexa5adu
+		OS weblogic / weblogic^1867<>? 
+		WLS weblogic / weblogic^1867<>?
+			
+	数据库 10.10.65.23 
+		root / ,ki89ol. 
+		mysql root / 123456 
+	
+	启动mysql
+		cd /usr/local/mysql/bin
+		./mysqld_safe --user=mysql & 
+		
+	管理
+		cd /usr/local/mysql/bin
+		./mysql -uroot -p
+	
+	备份
+		cd /usr/local/mysql/bin
+		./mysqldump -uroot -p123456 --opt -R coaqy > /tmp/coaqy.sql
+		./mysqldump -uroot -p123456 --opt -R Seal4 > /tmp/Seal4.sql
+	
+	恢复
+		mysql>CREATE DATABASE `coaqy` CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+		./mysql -uroot -p123456 --comment coaqy </tmp/coaqy.sql
+		
+		mysql>CREATE DATABASE `Seal4` CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+		./mysql -uroot -p123456 --comment Seal4 </tmp/Seal4.sql
+		
+	weblogic启停 
+		停管理节点
+		cd /u01/weblogic/user_projects/domains/coa_domain/bin
+	
+		启动管理节点
+		cd /u01/weblogic/user_projects/domains/coa_domain/bin
+		
+		停受管应用节点
+		cd /u01/weblogic/user_projects/domains/coa_domain/bin
+		./stopManagedWebLogic.sh Server-COA1  http://10.10.65.22:7001
+		./stopManagedWebLogic.sh Server-COA2  http://10.10.65.22:7001
+		或
+		ps -ef |grep Server-COA
+		kill -9 进程号
+	
+		启动受管应用节点
+		cd /u01/weblogic/user_projects/domains/coa_domain/bin
+		nohup ./startManagedWebLogic.sh Server-COA1 http://10.10.65.22:7001 &
+		nohup ./startManagedWebLogic.sh Server-COA2 http://10.10.65.22:7001 &
+		nohup ./startManagedWebLogic.sh Server-COA3 http://10.10.65.22:7001 &
+		nohup ./startManagedWebLogic.sh Server-COA4 http://10.10.65.22:7001 &
+	
+	应用部署路径	/u01/weblogic/coaqy
+	更新缓存路径	
+		/u01/weblogic/user_projects/domains/coa_domain/servers/Server-COA1/tmp/_WL_user
+		/u01/weblogic/user_projects/domains/coa_domain/servers/Server-COA2/tmp/_WL_user
+		/u01/weblogic/user_projects/domains/coa_domain/servers/Server-COA3/tmp/_WL_user
+		/u01/weblogic/user_projects/domains/coa_domain/servers/Server-COA4/tmp/_WL_user
+	
+	应用控制台：
+		主文件附件目录：//u01//weblogic//coaqyfiles//master//
+		挂接文件中转根目录：//u01//weblogic//coaqyfiles//UploadTmp//
+		应用部署根路径：//u01//weblogic//coaqy//
+		应用附件均衡路径：
+			//u01//weblogic//coaqyfiles//app//FilePath1//
+			//u01//weblogic//coaqyfiles//app//FilePath2//
+			//u01//weblogic//coaqyfiles//app//FilePath3//
+	
+	电子印章服务网址 http://oa.greenamc.com:8080/ZoomSeal/zmserver.zz
+	电子印章管理后台 http://10.10.65.22:8080/ZoomSeal/bgindex.jsp		
+		admin / admin0906
+	电子印章管理前台 http://10.10.65.22:8080/ZoomSeal/index.jsp			
+		yzadmin / yzadmin0906 
+		usb-key的pin码 / yzpin0910
+	
+	正式
+	开发商： 内蒙古科电数据服务有限公司
+	版  本： PageOffice 企业版 3
+	序列号： Y4HL8-QRU8-EYLP-CU5Z4
+	
+	开发商: 内蒙古庆源绿色金融资产管理有限公司(2018-8-30)
+	版  本: ZoomSeal电子签章系统 标准版 4
+	序列号: Z-IAF-5DWB-AK74-VVIG6
+	
+	以下是ZOOMSeal电子签章系统由使用版本改为正式版本方法：
+	1、删除服务器端"C:\ZZPOSYS\apache-tomact-6.0.32\webapps\ZoomSeal\WEB-INF\lib"（默认安装目录）下的license.lic文件，
+	2、通过浏览器访问系统后台页面，在弹出的输入序列号注册框里把正式授权号输入直接注册就可以了。
+	
+	解决tomcat甩后台后印章显示问题
+	https://blog.csdn.net/qiuhan/article/details/47723199
+	
+	修改${TOMCAT_HOME}/bin/catalina.sh或${TOMCAT_HOME}/bin/catalina.bat文件：
+	
+	在所有类似以下代码：
+	    "$_RUNJAVA" $JAVA_OPTS $CATALINA_OPTS \
+	       -Djava.endorsed.dirs="$JAVA_ENDORSED_DIRS" -classpath "$CLASSPATH" \
+	       -Djava.security.manager \
+	       -Djava.security.policy=="$CATALINA_BASE"/conf/catalina.policy \
+	       -Dcatalina.base="$CATALINA_BASE" \
+	       -Dcatalina.home="$CATALINA_HOME" \
+	       -Djava.io.tmpdir="$CATALINA_TMPDIR" \
+	
+	在尾部加上一句：
+	      -Djava.awt.headless=true \
+	
+	修改后内容如下：
+	    exec "$_RUNJAVA" $JAVA_OPTS $CATALINA_OPTS \
+	       -Djava.endorsed.dirs="$JAVA_ENDORSED_DIRS" -classpath "$CLASSPATH" \
+	       -Dcatalina.base="$CATALINA_BASE" \
+	       -Dcatalina.home="$CATALINA_HOME" \
+	       -Djava.io.tmpdir="$CATALINA_TMPDIR" \
+	       -Djava.awt.headless=true \
+	
+	之后重启Tomcat服务
+	
+	59439218 卓正亢宝燕
+	
+	阿里云 
+		liuganpingieds_zdgvq / 333001Tivoli
+		newmanjohn@163.com / 333001Tivoli
+	
+		nmwuyu/nm687111
+	
+	nginx安装 / https://blog.csdn.net/qq_32828933/article/details/82715798

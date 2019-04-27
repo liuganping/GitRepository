@@ -1,0 +1,159 @@
+1、数据库、表名大小写敏感，分区名不敏感
+
+2、整理分区碎片
+	ALTER TABLE t1 REBUILD PARTITION (p0, p1)；
+	ALTER TABLE t1 OPTIMIZE PARTITION (p0, p1)；
+
+3、Explain计划，避免全表扫描
+
+4、知道返回不超过1条，加LIMIT 1，能阻止找到后继续找
+	SELECT 1 FROM user WHERE state = 'Alabama' LIMIT 1
+
+5、对检索字段加索引
+
+6、联接字段在各自表上都建索引，如外键
+
+7、聚集索引查找快、更新慢；非聚集索引查找稍慢，更新快
+
+8、什么时候使用分区
+
+	*海量数据表
+
+	*历史表快速的查询，可以采用ARCHIVE+PARTITION的方式
+
+	*数据表索引大于服务器有效内存
+
+	*对于大表，特别是索引远远大于服务器有效内存时，可以不用索引，此时分区效率会更有效
+
+9、临时表操作
+	DROP TEMPORARY TABLE IF EXISTS Pf_T_IndexContentOfMainText; 
+    CREATE TEMPORARY TABLE Pf_T_IndexContentOfMainText ( 
+    	BizAppName varchar(10) NOT NULL,
+        BizAppID int unsigned NOT NULL,
+        BizAppTitle varchar(100) NOT NULL,
+        ViewUrl varchar(100) NOT NULL,
+        MainText mediumtext NOT NULL,
+        PRIMARY KEY (BizAppName,BizAppID)) ENGINE=memory
+  	CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+	
+	insert into Pf_T_IndexContentOfMainText values (vBizAppName,pBizAppID,vBizAppTitle,vViewUrl,vZw);
+
+10、去除前后字符串
+	trim(LEADING '无；' from rst)
+	完整格式：TRIM([{BOTH | LEADING | TRAILING} [remstr] FROM] str) 
+	简化格式：TRIM([remstr FROM] str) 
+	
+11、汉字排序
+	CONVERT(Name USING GBK) 按汉字排序
+
+12、即时序列
+	@@identity = oracle的nextval
+
+13、列表显示顺序号
+	strSelect = "select @rownum:=@rownum+1, ... ";
+	strFrom = "from (SELECT @rownum:=0) r,Pf_D_ToDoLink l left join Pf_D_ToDoOpenTs o on l.ToDoWorkItem=o.ToDoWorkItem,Pf_M_BizNode n ";
+
+14、日期显示
+	DATE_FORMAT(l.ArrivedTs,'%Y-%m-%d %H:%i:%s')
+
+15、取（汉字值-汉字名）对的名
+	var ActionName = document.all.ActionName.options[document.all.ActionName.selectedIndex].text;
+	
+16、查询依赖某表的外键约束
+	select Constraint_Name  
+	from information_schema.key_column_usage   
+	where table_schema='itil' and referenced_table_name = 'Yw_M_Dd' and referenced_column_name='ID'; 	
+
+17、修改PK操作
+	SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0; #禁用外键
+	ALTER TABLE `Pf_M_EntAppCode` MODIFY COLUMN `ID` SMALLINT(5) UNSIGNED NOT NULL AUTO_INCREMENT;
+	SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS; #恢复外键
+
+18、集合元素检索
+	FIND_IN_SET(old.ID,PzxIDs)>0
+	select group_concat(Seq order by xxx Separator ',') into vDirectChildWIs from Pf_A_BizProcRcd where find_in_set(SrcWorkItems,vDirectChildWIs)>0;
+
+19、MySql数据宽度不够存插入的值，效果是存数据类型的最大值，而不是报错。
+
+20、序列归1
+	SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0; #禁用外键
+	truncate table `Pf_M_EntAppCode`;
+	truncate table `Pf_M_Org`;
+	truncate table `Pf_M_Usr`;
+	truncate table `Pf_M_Module`;
+	truncate table `Pf_M_Func`;
+	truncate table `Pf_M_Role`;
+	truncate table `Pf_M_BizNode`;
+	truncate table `Pf_M_BizFlow`;
+	truncate table `Pf_M_BizFlowBranch`;
+	truncate table `Pf_A_Biz`;
+	truncate table `Pf_A_BizProcRcd`;
+	truncate table `Pf_C_GrantHis`;
+	truncate table `Pf_D_PromptMail`;
+	truncate table `Pf_M_AttachInfo`;
+	truncate table `Pf_A_AttachInfo`;
+	truncate table `Pf_M_PubHoliday`;
+	truncate table `Pf_D_FullIndexCmdList`;
+	SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS; #恢复外键
+	
+21、去掉文本中的回车换行
+	Pf_Abbre(REPLACE(REPLACE(v.FkSy,CHAR(10),''),CHAR(13),''),40)	
+	
+22、注释 /*!99999 不会被source干掉的注释方式 */ 	
+
+23、看mysql版本
+	[root@mysqldev bin]# ./mysql --version
+	./mysql  Ver 14.14 Distrib 5.6.21, for Linux (x86_64) using  EditLine wrapper
+
+24、相关更新
+	update Pf_A_Biz w,(
+	    	select distinct BizSeq,WaitPersons
+			from Pf_A_BizProcRcd
+	        where ActionID is not null) n
+	set w.WaitPersons=n.WaitPersons
+	where w.Seq=n.BizSeq;	
+	
+25、/etc/my.cnf
+lower_case_table_names=1	#表名不区分大小写
+group_concat_max_len = 4096	#结果集输出大小设置
+skip-name-resolve #解决库打开慢的问题
+
+26、问题
+Unsafe statement written to the binary log using statement format since BINLOG_FORMAT = STATEMENT. Statement is unsafe because it invokes a trigger or a stored function that inserts into an AUTO_INCREMENT column. Inserted values cannot be logged correctly.
+
+27、主表记录删除，引发外键级联删除子表记录s，子表删除触发器不会执行！
+
+28、'/'分割串拆分为列
+CREATE TABLE `Pf_M_SplitCntDicTab` (
+  `ID` INTEGER(10) UNSIGNED NOT NULL,
+  `num` INTEGER(10) UNSIGNED NOT NULL,
+  PRIMARY KEY USING BTREE (`ID`),
+  UNIQUE KEY `num` USING BTREE (`num`)
+) ENGINE=InnoDB
+CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+
+CREATE DEFINER = 'root'@'%' PROCEDURE `Pf_FillSplitCntDicTab`()
+    NOT DETERMINISTIC
+    CONTAINS SQL
+    SQL SECURITY DEFINER
+    COMMENT ''
+BEGIN
+	declare num int;   
+	
+    set num=1;   
+	while num < 1000 do   
+		insert into Pf_M_SplitCntDicTab(id, num) values(num, num);   
+	set num=num+1;  
+	end while; 
+END;
+
+call Pf_FillSplitCntDicTab();
+commit;
+
+select substring_index(substring_index(t.split_column,'/',d.num),'/',-1) v
+from (select '12345678901/98765432101' as split_column) t join Pf_M_SplitCntDicTab d ON
+	d.num <= (length(t.split_column) - length(replace(t.split_column,'/','')) + 1);
+	
+29、if()表达式
+if(m.YjLb='a',ZxBg_XmMc(m.YjID),if(m.YjLb='b',ZxBg_XmMc(ZxBg_XmIDByHtID(m.YjID)),if(m.YjLb='c',ZxBg_LsXmMc(m.YjID),
+	if(m.YjLb='d',ZxBg_LsXmMc(ZxBg_LsXmIDByHtScID(m.YjID)),'-')))) XmMc	

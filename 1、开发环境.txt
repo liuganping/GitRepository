@@ -1,0 +1,141 @@
+公司wifi：
+	YG / ieds,2014
+	svn： liuganping / liuganping（内网） 333001Tivoli（外网）
+本机虚拟机 
+	192.168.38.10
+	root / 33300128
+	wls weblogic / 33300128
+	mysql root / 33300128
+	oracle
+		sid / dorcl
+		oracle / oracle
+		alter user sys identified by sys20180621
+		seal / seal20180621
+		
+	weblogic 启动/关闭
+		cd /u01/app/oracle/product/fmw11g/user_projects/domains/AppDomain/bin		
+		nohup sh startWebLogic.sh 1>/dev/null 2>1 &
+		
+	redis 安装
+		cd /tmp
+		tar xzf redis-5.0.2.tar.gz
+		cd redis-5.0.2
+		make
+		改/tmp/redis-5.0.2/redis.conf
+			daemonize no > yes
+			
+		mkdir -p /usr/local/redis/bin
+		mkdir -p /usr/local/redis/etc
+		
+		cd /tmp/redis-5.0.2/
+		cp redis.conf /usr/local/redis/etc
+		cd src
+		cp mkreleasehdr.sh redis-benchmark redis-check-aof redis-cli redis-server /usr/local/redis/bin
+		
+	redis 启动/关闭
+		cd /usr/local/redis/bin
+		./redis-server ../etc/redis.conf 
+		pkill redis-server
+		测试： 
+			./redis-cli
+			set foo bar
+			get foo
+		
+服务器改时间、mysql启动
+date -s 20190421
+date -s 21:43:00
+hwclock
+
+cd /usr/local/mysql/bin
+./mysqld_safe --user=mysql & 
+
+关闭mysql
+cd /usr/local/mysql/bin
+./mysqladmin -uroot -p shutdown
+
+管理mysql
+cd /usr/local/mysql/bin
+./mysql -uroot -p
+
+备份mysql
+cd /usr/local/mysql/bin
+./mysqldump -uroot -p33300128 --opt -R coakdu > /tmp/coakdu.sql
+./mysqldump -uroot -p33300128 --opt -R coaqy > /tmp/coaqy.sql
+./mysqldump -uroot -p33300128 --opt -R Seal4 > /tmp/Seal4.sql
+./mysqldump -uroot -p33300128 --opt -R itsm > /tmp/itsm.sql
+
+恢复mysql
+mysql>CREATE DATABASE `coaqy` CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+mysql>CREATE DATABASE `coaqyp` CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+mysql>CREATE DATABASE `coapc` CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+./mysql -uroot -p33300128 --comment coaqy </tmp/coaqy.sql
+./mysql -uroot -p33300128 --comment coaqyp </tmp/coaqyp.sql
+./mysql -uroot -p33300128 --comment coapc </tmp/qydb.sql
+
+mysql>CREATE DATABASE `Seal4` CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+./mysql -uroot -p33300128 --comment Seal4 </tmp/Seal4.sql
+
+source /tmp/seal_mysql.sql
+
+生产转测试
+update Pf_M_UsrPwd set Password='MTIzNDU2';
+commit;
+
+update Pf_M_Usr set eMail=replace(eMail,'@','_@');
+commit;
+	
+科电开发测试：
+	10.10.128.233	ieds / 1
+	mysql虚拟机 10.10.128.7 root / 33300128
+	http://10.10.128.7:7001/coaqy/loginAdmin.jsp
+	http://10.10.128.7:7001/coaqy/
+	部署源： /usr/coaqy/coaqy
+	/u01/app/oracle/product/fmw11g/user_projects/domains/AppDomain/bin
+	nohup sh startWebLogic.sh 1>/dev/null 2>1 &
+
+电子印章：
+	电子印章服务网址 http://192.168.38.10:8080/ZoomSeal/zmserver.zz
+	http://192.168.38.10:8080/ZoomSeal/bgindex.jsp admin / 123456
+	http://192.168.38.10:8080/ZoomSeal/index.jsp yzadmin / 123456
+	庆源办公签名证书
+	内蒙古庆源绿色资产管理有限公司
+	数据信息部 杨震 13474911119
+
+PageOffice帮助
+http://www.pageoffice.cn:8080/helpCenter/htdocs/plus/search.jsp?q=%E4%BF%A1%E4%BB%BB&pageno=1&queryId=287 
+
+PageOffice例子
+http://www.pageoffice.cn:8080/Samples4/
+
+PageOffice 企业版 4 下载
+http://www.zhuozhengsoft.com/dowm/?tdsourcetag=s_pcqq_aiomsg
+
+企业版4试用序列号：
+I7TGD-71VV-FYD8-4NMYP
+Q37LN-W8NI-KFSQ-LEY3Y
+
+企业版3.0：14MC4-3NGZ-5MFH-P5GNE
+
+服务URL
+http://10.10.128.7:8080/ZoomSeal/zmserver.zz
+
+tomcat清缓存
+/usr/local/apache-tomcat-7.0.85/work/Catalina
+
+内容管理
+admin / password
+
+科电SVN
+http://10.10.160.70/svn/ieds
+
+微信小程序
+	liuganping@infohold.com.cn / 333001Tivoli
+	AppID(小程序ID)	wx7a38b3994cc4b57c 小程序密钥 f4ed6e4f7b6aa814ce7114b8792c694f
+	王文杰 小程序ID wxe045b28b8e4b4be5  小程序密钥 8e9812f7deaaa1658607db2eac70463a
+	
+查本机无线密码： 
+	netsh wlan show profiles name="IEDS-LD" key=clear
+	netsh wlan show profiles name="infohold_1" key=clear
+
+导入项目后注意以下文件中项目名称的改变
+C:\D_Eclipse\coa\.settings\org.eclipse.wst.common.component

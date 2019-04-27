@@ -1,0 +1,165 @@
+an 03, 2019 1:34:30 PM org.apache.catalina.core.StandardWrapperValve invoke
+SEVERE: Servlet.service() for servlet [jsp] in context with path [/coaqy] threw exception [java.lang.IllegalStateException: getOutputStream() has already been called for this response] with root cause
+java.lang.IllegalStateException: getOutputStream() has already been called for this response
+	at org.apache.catalina.connector.Response.getWriter(Response.java:662)
+		
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
+[root@dsvr /]# openssl genrsa -out /root/ca/ca-key.pem 1024
+
+[root@dsvr /]# openssl req -new -out /root/ca/ca-req.csr -key /root/ca/ca-key.pem -config /etc/pki/tls/openssl.cnf  
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [XX]:CN
+State or Province Name (full name) []:Beijing  
+Locality Name (eg, city) [Default City]:Beijing
+Organization Name (eg, company) [Default Company Ltd]:Infohold
+Organizational Unit Name (eg, section) []:R&D
+Common Name (eg, your name or your server's hostname) []:oasvr
+Email Address []:
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+
+[root@dsvr /]# openssl x509 -req -in /root/ca/ca-req.csr -out /root/ca/ca-cert.pem -signkey /root/ca/ca-key.pem -days 3650
+Signature ok
+subject=/C=CN/ST=Beijing/L=Beijing/O=Infohold/OU=R&D/CN=oasvr
+Getting Private key
+
+[root@dsvr /]# keytool -genkey -alias mydm -validity 365 -keyalg RSA -keysize 1024 -keypass 33300128 -storepass 33300128 -keystore mydm.jks
+What is your first and last name?
+  [Unknown]:  oliver liu
+What is the name of your organizational unit?
+  [Unknown]:  R&D
+What is the name of your organization?
+  [Unknown]:  Infohold
+What is the name of your City or Locality?
+  [Unknown]:  Beijing
+What is the name of your State or Province?
+  [Unknown]:  Beijing
+What is the two-letter country code for this unit?
+  [Unknown]:  CN
+Is CN=oliver liu, OU=R&D, O=Infohold, L=Beijing, ST=Beijing, C=CN correct?
+  [no]:  yes
+
+[root@dsvr /]# keytool -certreq -alias mydm -sigalg MD5withRSA -file mydm.csr -keypass 33300128 -keystore mydm.jks -storepass 33300128 
+
+[root@dsvr /]# openssl x509 -req -in mydm.csr -out mydm.pem -CA /root/ca/ca-cert.pem -CAkey /root/ca/ca-key.pem -days 365 -set_serial 1
+Signature ok
+subject=/C=CN/ST=Beijing/L=Beijing/O=Infohold/OU=R&D/CN=oliver liu
+Getting CA Private Key
+
+[root@dsvr /]# keytool -import -v -trustcacerts -keypass 33300128 -storepass 33300128 -alias root -file /root/ca/ca-cert.pem -keystore mydm.jks 
+Owner: CN=oasvr, OU=R&D, O=Infohold, L=Beijing, ST=Beijing, C=CN
+Issuer: CN=oasvr, OU=R&D, O=Infohold, L=Beijing, ST=Beijing, C=CN
+Serial number: 97981902a93c508e
+Valid from: Sun Dec 02 16:08:18 CST 2018 until: Wed Nov 29 16:08:18 CST 2028
+Certificate fingerprints:
+	 MD5:  7F:C1:35:3B:82:A0:9D:5A:2E:87:14:08:4E:F5:D7:FE
+	 SHA1: C1:D5:B6:A4:66:E7:79:F5:18:BC:17:07:B1:BE:EA:0C:92:3A:86:D5
+	 SHA256: 48:7D:85:75:BF:54:DD:CA:8E:2F:07:12:E2:26:0F:23:DF:AB:F6:74:1C:A4:A3:EA:2D:3B:C5:F9:8E:68:CC:DA
+	 Signature algorithm name: SHA1withRSA
+	 Version: 1
+Trust this certificate? [no]:  Y
+Certificate was added to keystore
+[Storing mydm.jks]
+
+[root@dsvr /]# keytool -import -v -trustcacerts -storepass 33300128 -alias mydm -file mydm.pem -keystore mydm.jks 
+Certificate reply was installed in keystore
+[Storing mydm.jks]
+
+[root@dsvr /]# keytool -import -alias mydm-ca -trustcacerts -file /root/ca/ca-cert.pem -keystore mydmtrust.jks
+Enter keystore password:  
+Re-enter new password: 
+Owner: CN=oasvr, OU=R&D, O=Infohold, L=Beijing, ST=Beijing, C=CN
+Issuer: CN=oasvr, OU=R&D, O=Infohold, L=Beijing, ST=Beijing, C=CN
+Serial number: 97981902a93c508e
+Valid from: Sun Dec 02 16:08:18 CST 2018 until: Wed Nov 29 16:08:18 CST 2028
+Certificate fingerprints:
+	 MD5:  7F:C1:35:3B:82:A0:9D:5A:2E:87:14:08:4E:F5:D7:FE
+	 SHA1: C1:D5:B6:A4:66:E7:79:F5:18:BC:17:07:B1:BE:EA:0C:92:3A:86:D5
+	 SHA256: 48:7D:85:75:BF:54:DD:CA:8E:2F:07:12:E2:26:0F:23:DF:AB:F6:74:1C:A4:A3:EA:2D:3B:C5:F9:8E:68:CC:DA
+	 Signature algorithm name: SHA1withRSA
+	 Version: 1
+Trust this certificate? [no]:  Y
+Certificate was added to keystore
+
+https://192.168.38.10:7002/coaqy/login.jsp 
+http://192.168.38.10:7001/ioa/login.jsp
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+1、庆源OA跟产
+	1.1、借款模块增加<收款账户名><收款账户开户行><收款账号>三栏；
+	1.2、增加<请示签报>通用流程，允许发起人在现有流程与新流程之间选择。
+
+2、庆源OA第二次需求变更开发
+	完成<非业务合同审批><合同审查><合同审批>对应变更开发；
+	完成档案交接业务改造设计。
+	
+3、公司事务支持
+    3.1、完成公司研发活动申报表中《金保工程运维管理系统的研究与开发》项目核心技术材料撰写；
+    3.2、提醒人资，通知加班申请人往后按公司制度模板单日填报加班时段，调休规则是：审批通过的加班申请，加班时长不超过4小时按半天计算可调休天数，超过4小时按1天计算可调休天数；
+    对已审批通过、在<加班理由>栏一次标注多日加班的申请人，直接在后台设置其<可调休天数>为申报的天数。
+    
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+tar cvf coakd20190224.tar coa
+
+update Xj_M_NjTs set BnYxTs=5 where UsrID=360;
+commit;
+
+select UsrID,Pf_OrgShortName(Pf_UsrMainOrgID(UsrID)) bm,Pf_UsrcName(UsrID),BnKxTs,BnYxTs
+from Xj_M_NjTs
+order by CONVERT(Pf_UsrcName(UsrID) USING GBK);
+
+0471-6536316；18647841869康 东芝打印机咨询  
+
+select w.ID,w.fID,w.Jc,w.Qc from Yw_M_ZcLb w where not exists(select 1 from Yw_M_ZcLb where fID=w.ID) order by w.zPxm
+
+1、基于JBPM开源代码包装后的流程引擎
+自主知识产权组件，流程环节处理支持多种模式：一般串行、多人顺序、单层并发（分：抢占/非抢占）、多层并发、投票；通过了严格的性能压力测试，高效支持ITSM系统密集事件的流程处理。
+
+2、动态表单及模型设计器
+自主知识产权工具，有了它能支持ITSM系统中资产技术规范与配置项、巡检项属性的任意增减。 
+
+3、主从库读写分离和内容缓存
+利用MySql复制技术，在一台Linux虚拟机上开设两个MySql实例，并在两个实例间设置数据库复制，一主一从，主库写、从库读，最近访问记录缓存。有效支撑ITSM系统多企业多用户访问。
+
+4、附件文件均衡存放与全文检索
+采用了均衡算法，确保附件文件能均衡地分布到中间件服务器能存取的多个文件系统中，尽量降低磁盘发生访问争用的机会；
+采用Lucene组件技术并引入消息队列，优化了附件全文索引与主业务并发的性能。
+有了这两项技术为高效管理ITSM系统知识与方案库提供了手段。
+
+
+比以往分批次录取的危险相对增大是在分数上不上下不下的情况下容易出现的问题。
+
+以往 600-610之间大致能录个北工大， 学生可以在一本六个平行志愿中选择冲高、 持平和 托底的三梯队。 心气高，把北工大放在垫底报考位置也许能够被录取， 
+如该年北工大逢大年，意外发生，学生则掉到二批。如一本录取不上， 不想去二本选择复读，如不复读便到二批次，凭高出一本线50分左右的成绩， 还是可以读一所质量高的
+在京列为二本实则在当地不错的大学。 以上都是可以在自己选择把控之内的。
+
+现如今的模式， 北工大取不上， 一旦服从调剂， 被录不满意学校的可能性增大。 比如调到一本西藏大学或本是二本的某某院校。 
+当然这个合并可以让像江苏大学这样有一定实力的在京二本录取院校提升位次，录到好学生。 而报考环节因院校和专业均考虑的因素， 使得分数没有绝对竞争力的学生要么退其次要么再战来年。
+
+官网 https://flutter.dev
+中文 https://flutterchina.club
+
+1、自我介绍
+git config --global user.name "RichardLiu"
+git config --global user.email "liuganping@ieds.com.cn"
+
+2、初始化版本库
+cd C:/D_Dev/MyGitRepository
+git init
+git add *
+
+3、
+
+4、远程共享
+C:/Users/q
+ssh-keygen -t rsa -C "liuganping@ieds.com.cn"

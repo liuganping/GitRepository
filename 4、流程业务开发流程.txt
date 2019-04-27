@@ -1,0 +1,26 @@
+后台：
+1、建表、编触发
+	主表 Xxx_A_Zt	
+		如挂附件，
+			修改 Pf_A_AttachInfo_11 增加新主体分区时间戳拷贝来源
+			编制 Xxx_A_Zt_22 对主体下挂附件做删除标记
+		
+	子表 Xxx_A_Mx
+		主表外键做级联删除设置
+		Xxx_A_Mx_11 拷贝主体分区时间戳
+		如子表下挂附件，
+			修改 Pf_A_AttachInfo_11 增加新主体分区时间戳拷贝来源 
+			*编制 Xxx_A_Mx_22 对下挂附件做删除标记，应对单独删除从属子记录的情况；
+			+编制 Xxx_A_Zt_12 应对因父表删除引发级联删除子表记录、对子表记录s下挂附件做删除标记
+
+2、过程
+	业务主体状态迁移 UpdNodeOfBizNN：约束、相关更新、置可归档（NN-业务编号，编号小于10左0两位补足）	
+	
+	填充索引目标-表单主体、附件路径： FillIndexForBizNN （NN-业务编号，编号小于10左0两位补足）
+	
+前台：
+1、拷贝[25-临时采购申请]业务
+2、因框架增加待办批处理功能，
+	如需修改com.infohold.FlowProc.AfterHandleSubmit类，同步修改com.infohold.FlowProc.AfterHandleBatchSubmit类；
+	如需修改com.infohold.FlowProc.SubmitFromHandle类，同步修改com.infohold.FlowProc.SubmitFromHandleBatch类。
+	
