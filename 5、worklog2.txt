@@ -18,7 +18,7 @@
 在原【法律合规部门负责人审批】环节前增加【法律合规部审核】环节录入<合同编号>；（范文苑）
 增加<是否对方提供合同>字段，控制<生成二维码、套模板、盖电子印章>是否为必须操作。（范文苑）
 
-6、专项业务办理完毕需要接续档案交接（范文苑）
+6、专项业务办理完毕需要接续档案交接（范文苑） ok
 办法：
 	6.1、交档时机
 	业务员认为项目除付款业务资料（另行归档），其它资料基本不再变更。
@@ -33,4 +33,16 @@
 Bug：
 	办理单查看权限？
 
-JdLy XmHtBhMc
+onClick="ChartWorkCntBig();"
+
+function ChartWorkCntBig()
+{
+	var TjSdS = document.all.TjSdS.value;
+	var TjSdE = document.all.TjSdE.value;
+	
+	window.open('ChartWorkCntBig.jsp?TjSdS='+TjSdS+'&TjSdE='+TjSdE,'','scrollbars,resizable=no,menubar=no,status=yes,width=900,height=675,top=300,left=100');
+}
+
+onClick="window.open('ChartWorkCntBig.jsp?TjSdS='+<%=Bean.TjSdS%>+'&TjSdE='+<%=Bean.TjSdE%>,'','scrollbars,resizable=no,menubar=no,status=yes,width=1000,height=750,top=200,left=200');"
+
+<iframe id="IF_Left" name="IF_Left" width="100%" height="100%" src="ChartWorkCnt.jsp" frameborder=0 scrolling=yes allowtransparency="true"></iframe>

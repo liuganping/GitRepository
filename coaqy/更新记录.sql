@@ -2077,7 +2077,7 @@ ALTER TABLE `JkBx_A_Jk` ADD COLUMN `SkZhNo` VARCHAR(50) NOT NULL DEFAULT '-' COM
 1、改【公司会签】模式为“多人顺序”；
 2、增加流程<一般请示签报流程2019>；
 
-+++++++++++++++++++++ 庆源OA需求与变更单20190410.doc +++++++++++++++++++++++++++++
++++++++++++++++++++++ 庆源OA需求与变更单20190410.doc +++++++++++++++++++++++++++++ ok~
 1、非业务合同审批业务（9）
 	1.1、后台；
 ALTER TABLE `WjHq_A_Zt` ADD COLUMN `HtBh` VARCHAR(40) DEFAULT NULL COMMENT '合同编号';
@@ -2086,7 +2086,7 @@ ALTER TABLE `WjHq_A_Zt` ADD COLUMN `SfDfTgHt` CHAR(1) NOT NULL DEFAULT 'N' COMME
 insert into Pf_M_ErrCase values ('UpdNodeOfBiz09_err1','提交法律合规部审批前应先对合同编号！');
 commit;
 	
-	1.2、增加【法律合规部审核】环节，按最新设计文件设置环节应用特征字；
+	1.2、【合同起草】改【起草】，增加【法律合规部审核】环节，按最新设计文件设置环节应用特征字；
 	
 	1.3、新开流程<非业务类合同审签流程201904> 
 	
@@ -2120,7 +2120,7 @@ commit;
 
 *UpdNodeOfBiz25
 	
-5、*档案交接
+5、*档案交接（7）
 	5.1、后台
 insert into Pf_M_CodeType values (41,'C','交档来源');
 
@@ -2128,12 +2128,15 @@ insert into Pf_M_CharCode values (41,'A','无系统来源',0);
 insert into Pf_M_CharCode values (41,'B','非业务合同',0);	
 insert into Pf_M_CharCode values (41,'C','临时项目审查合同',0);	
 insert into Pf_M_CharCode values (41,'D','正式立项项目',0);	
+
+insert into Pf_M_ErrCase values ('UpdNodeOfBiz07_err1','交档不全，流程不能往下走！');
+
 commit;
 
 ALTER TABLE `Da_A_Jj` ADD COLUMN `JdLy` CHAR(1) NOT NULL DEFAULT 'A' COMMENT '交档来源';
 ALTER TABLE `Da_A_Jj` ADD COLUMN `LyYwOrXmID` INTEGER UNSIGNED DEFAULT NULL COMMENT '来源业务/项目ID';
 +Da_A_JjMx Da_A_Jj_21 DaJj_XmHtBhMc
-*Pf_A_AttachInfo_21 Pf_A_AttachInfo_23 Da_A_Jj_22
+*Pf_A_AttachInfo_21 Pf_A_AttachInfo_23 Da_A_Jj_22 UpdNodeOfBiz07 FillIndexForBiz07
 
 # 历史交档明细补丁
 insert into Da_A_JjMx
@@ -2141,6 +2144,13 @@ select now(),null,PrimaryID,Seq,'Y'
 from Pf_A_AttachInfo
 where PrimaryName='Da_A_Jj' and DelTag='N';	
 commit;
+
+ALTER TABLE `Pf_D_IndexContentOfAttach` DROP FOREIGN KEY `Pf_D_IndexContentOfAttach_FK1`;
 	
 	5.2、修改【档案接收】应用特征字为Y
-	
+
+6、绩效统计
++JxTj_TimeoutTime JxTj_RejectCnt JxTj_FillDataList	
+
+2019-04-25 ok
+*JxTj_TimeoutTime JxTj_RejectCnt JxTj_FillDataList
