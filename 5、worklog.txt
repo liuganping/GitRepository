@@ -166,8 +166,17 @@ git log	看版本沿革-全息
 git log --pretty=oneline 看版本沿革-简易
 git reset --hard HEAD^ 回退到上一版本
 git reflog 用来记录你的每一次命令，以便确定要回到未来的哪个版本
+git checkout -- readme.txt 撤销修改
+git reset HEAD <file>可以把暂存区的修改撤销掉（unstage），重新放回工作区
+场景1：当你改乱了工作区某个文件的内容，想直接丢弃工作区的修改时，用命令git checkout -- file。
+场景2：当你不但改乱了工作区某个文件的内容，还添加到了暂存区时，想丢弃修改，分两步，第一步用命令git reset HEAD <file>，就回到了场景1，第二步按场景1操作。
+git rm test.txt 删除版本然后commit
 
 4、远程共享
 C:/Users/q
 ssh-keygen -t rsa -C "liuganping@ieds.com.cn"
 https://github.com/
+liuganping
+liuganping@ieds.com.cn
+333001Tivoli
+远程仓库名 / GitRepository
