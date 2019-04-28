@@ -180,3 +180,5 @@ liuganping
 liuganping@ieds.com.cn
 333001Tivoli
 Ô¶³Ì²Ö¿âÃû / GitRepository
+
+git remote add remoteRepo git@github.com:liuganping/GitRepository.git
